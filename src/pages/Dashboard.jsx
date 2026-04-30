@@ -72,6 +72,19 @@ function Dashboard() {
         fetchData();
     }, []);
 
+    const STG_NAMES = {
+        "SG039A": "Cholecystectomy — Open (No CBD)",
+        "SG039B": "Cholecystectomy — Open (With CBD)",
+        "SG039C": "Cholecystectomy — Laparoscopic (No CBD)",
+        "SG039D": "Cholecystectomy — Laparoscopic (With CBD)",
+        "MG006A": "Enteric Fever (Typhoid)",
+        "MG001A": "Acute Febrile Illness",
+        "MG026A": "Pyrexia of Unknown Origin",
+        "MG064A": "Severe Anemia",
+        "SB039A": "Total Knee Replacement (Primary)",
+        "SB039B": "Total Knee Replacement (Revision)",
+    };
+
     // Derived analytics percentages (use API values if available, else defaults)
     // Derive percentages from raw counts
     const total = analytics?.total_claims ?? analytics?.total ?? 1; // avoid /0
@@ -151,24 +164,53 @@ function Dashboard() {
                 <div className="dashboard-content">
 
                     {/* RECENT CLAIMS */}
-                    <div className="card-box">
+                    <div className="card-box" style={{ flex: 2 }}>
                         <h2>Recent Claims</h2>
 
                         {loading ? (
                             <p style={{ color: "#94a3b8" }}>Loading claims...</p>
                         ) : recentClaims.length > 0 ? (
-                            recentClaims.map((claim, index) => (
-                                <div
-                                    className="claim-row"
-                                    key={claim.id ?? index}
-                                    style={{ cursor: "pointer" }}
-                                    onClick={() => navigate(`/claim-details?id=${claim.id}`)}
-                                >
-                                    <span>{claim.title ?? claim.patient_name ?? claim.patientName ?? claim.name ?? "Untitled Claim"}</span>
-                                    <span>{claim.status ?? "—"}</span>
-                                    <span>{claim.created_at ? new Date(claim.created_at).toLocaleDateString() : "—"}</span>
+                            <div className="claims-table-container">
+                                <div className="claim-row header" style={{ fontWeight: "bold", borderBottom: "1px solid #e2e8f0", paddingBottom: "10px", marginBottom: "10px" }}>
+                                    <span style={{ flex: 1 }}>ID</span>
+                                    <span style={{ flex: 3 }}>Procedure</span>
+                                    <span style={{ flex: 2 }}>Status</span>
+                                    <span style={{ flex: 2, textAlign: "right" }}>Date</span>
                                 </div>
-                            ))
+                                {recentClaims.map((claim, index) => {
+                                    const procName = STG_NAMES[claim.diagnosis_code] || claim.title || "Unknown Procedure";
+                                    const statusColor = claim.status === "verified" ? "#10b981" : claim.status === "rejected" ? "#ef4444" : "#f59e0b";
+                                    return (
+                                        <div
+                                            className="claim-row"
+                                            key={claim.id ?? index}
+                                            style={{ cursor: "pointer", padding: "12px 0", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center" }}
+                                            onClick={() => navigate(`/claim-details?id=${claim.id}`)}
+                                        >
+                                            <span style={{ flex: 1, color: "#64748b", fontWeight: "600" }}>#{claim.id}</span>
+                                            <span style={{ flex: 3, fontWeight: "500", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "10px" }}>
+                                                {procName}
+                                            </span>
+                                            <span style={{ flex: 2 }}>
+                                                <span style={{
+                                                    background: `${statusColor}15`,
+                                                    color: statusColor,
+                                                    padding: "4px 10px",
+                                                    borderRadius: "12px",
+                                                    fontSize: "12px",
+                                                    fontWeight: "bold",
+                                                    textTransform: "uppercase"
+                                                }}>
+                                                    {claim.status === "verified" ? "APPROVED" : claim.status ?? "PENDING"}
+                                                </span>
+                                            </span>
+                                            <span style={{ flex: 2, textAlign: "right", color: "#64748b", fontSize: "14px" }}>
+                                                {claim.created_at ? new Date(claim.created_at).toLocaleDateString("en-IN") : "—"}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         ) : (
                             <p style={{ color: "#94a3b8" }}>No claims found.</p>
                         )}
