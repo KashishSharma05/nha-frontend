@@ -27,47 +27,37 @@ function Compliance() {
             .finally(() => setLoading(false));
     }, [claimId]);
 
-    // Backend returns: { claim_id, compliance_status: "compliant"/"non-compliant" }
-    // Map to rich fields for the UI
-    const complianceStatus = report?.compliance_status ?? report?.complianceStatus;
-    const isCompliant = complianceStatus === "compliant";
+    const isCompliant = report?.verdict === "APPROVED";
+    const score       = report?.compliance_score ?? (isCompliant ? 100 : 0);
+    const riskLabel   = report?.risk_level ?? (isCompliant ? "Low Risk" : "High Risk");
+    const recommendation = report?.recommendation ?? "Waiting for analysis...";
 
-    const matchedRules = report?.matched_rules ?? report?.matchedRules ?? [];
-    const failedRules  = report?.failed_rules  ?? report?.failedRules  ?? [];
-    const score        = report?.compliance_score ?? report?.complianceScore
-                         ?? (complianceStatus ? (isCompliant ? 100 : 0) : "—");
-    const riskLabel    = report?.risk_level ?? report?.riskLevel
-                         ?? (complianceStatus ? (isCompliant ? "Low Risk" : "High Risk") : "—");
-    const recommendation = report?.recommendation ?? report?.ai_recommendation
-                           ?? (complianceStatus
-                               ? (isCompliant ? "Claim follows treatment guidelines. Approved for processing." : "Claim has compliance issues. Manual review recommended.")
-                               : "Waiting for analysis...");
+    const tmsFailures = report?.tms_failures || [];
+    const docFailures = report?.doc_failures || [];
+    const matchedRules = report?.matched_rules || [];
 
     const nextPath = claimId ? `/decision?id=${claimId}` : "/decision";
 
     return (
         <Layout>
             <div className="compliance-page">
-
                 <div className="compliance-header">
                     <h1>STG Compliance Check</h1>
-                    <p>Medical protocol validation report</p>
+                    <p>Medical protocol validation report against NHA STG Guidelines</p>
                 </div>
 
                 {error && <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>}
 
                 <div className="compliance-score-card">
                     <div className="score-circle">
-                        {loading ? "…" : `${score}${typeof score === "number" ? "%" : ""}`}
+                        {loading ? "…" : `${score}%`}
                     </div>
 
                     <div className="score-details">
                         <h2>Compliance Score</h2>
-                        <p>
-                            Claim mostly follows treatment guidelines
-                        </p>
+                        <p>Weighted scoring: TMS checks (critical), Mandatory docs (high), Clinical (medium)</p>
 
-                        <span className="risk-badge">
+                        <span className={`risk-badge ${riskLabel.toLowerCase().replace(" ", "-")}`}>
                             {loading ? "Loading..." : riskLabel}
                         </span>
                     </div>
@@ -76,33 +66,43 @@ function Compliance() {
                 {!loading && (
                     <div className="rules-grid">
 
+                        {/* Critical TMS Failures */}
+                        {tmsFailures.length > 0 && (
+                            <div className="rules-card" style={{ gridColumn: "1 / -1", borderLeft: "4px solid #ef4444" }}>
+                                <h2 style={{ color: "#ef4444" }}>🚨 Critical NHA TMS Failures ({tmsFailures.length})</h2>
+                                {tmsFailures.map((rule, i) => (
+                                    <div className="rule failed critical" key={i}>
+                                        <p style={{ fontWeight: "bold", marginBottom: "4px" }}>[{rule.id}] {rule.description}</p>
+                                        <p style={{ color: "#991b1b", fontSize: "13px" }}><strong>Fix:</strong> {rule.fix}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Document Failures */}
+                        {docFailures.length > 0 && (
+                            <div className="rules-card">
+                                <h2 style={{ color: "#f59e0b" }}>⚠️ Missing Mandatory Documents ({docFailures.length})</h2>
+                                {docFailures.map((rule, i) => (
+                                    <div className="rule failed" style={{ borderColor: "#fde68a", background: "#fffbeb" }} key={i}>
+                                        <p style={{ fontWeight: "bold", marginBottom: "4px" }}>[{rule.id}] {rule.description}</p>
+                                        <p style={{ color: "#b45309", fontSize: "13px" }}><strong>Fix:</strong> {rule.fix}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Matched Rules */}
-                        <div className="rules-card">
-                            <h2>Matched Rules</h2>
-
+                        <div className="rules-card" style={docFailures.length === 0 ? { gridColumn: "1 / -1" } : {}}>
+                            <h2 style={{ color: "#22c55e" }}>✅ Passed Rules ({matchedRules.length})</h2>
                             {matchedRules.length > 0 ? (
-                                matchedRules.map((rule, index) => (
-                                    <div className="rule success" key={index}>
-                                        {typeof rule === "string" ? rule : rule.name ?? rule.rule ?? JSON.stringify(rule)}
+                                matchedRules.map((rule, i) => (
+                                    <div className="rule success" key={i}>
+                                        <p>[{rule.id}] {rule.description}</p>
                                     </div>
                                 ))
                             ) : (
-                                <p style={{ color: "#94a3b8" }}>No matched rules</p>
-                            )}
-                        </div>
-
-                        {/* Failed Rules */}
-                        <div className="rules-card">
-                            <h2>Failed Rules</h2>
-
-                            {failedRules.length > 0 ? (
-                                failedRules.map((rule, index) => (
-                                    <div className="rule failed" key={index}>
-                                        {typeof rule === "string" ? rule : rule.name ?? rule.rule ?? JSON.stringify(rule)}
-                                    </div>
-                                ))
-                            ) : (
-                                <p style={{ color: "#22c55e" }}>All rules passed ✓</p>
+                                <p style={{ color: "#94a3b8" }}>No rules passed.</p>
                             )}
                         </div>
 
@@ -111,18 +111,12 @@ function Compliance() {
 
                 <div className="recommendation-box">
                     <h2>AI Recommendation</h2>
-                    <p>
-                        {loading ? "Analyzing..." : recommendation}
-                    </p>
+                    <p>{loading ? "Analyzing..." : recommendation}</p>
                 </div>
 
-                <button
-                    className="next-btn"
-                    onClick={() => navigate(nextPath)}
-                >
+                <button className="next-btn" onClick={() => navigate(nextPath)}>
                     Continue to Decision →
                 </button>
-
             </div>
         </Layout>
     );
