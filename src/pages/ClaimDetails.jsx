@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/claimDetails.css";
-import { getClaimById } from "../services/claimsService";
+import { getClaimById, deleteClaim } from "../services/claimsService";
 
 const STG_NAMES = {
     "SG039A": "Cholecystectomy — Open (No CBD)",
@@ -60,6 +60,17 @@ function ClaimDetails() {
             .catch(err => setError(err.message || "Failed to load claim."))
             .finally(() => setLoading(false));
     }, [claimId]);
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to permanently delete this claim?")) return;
+        
+        try {
+            await deleteClaim(claimId);
+            navigate("/dashboard");
+        } catch (err) {
+            setError("Failed to delete claim: " + (err.message || "Unknown error"));
+        }
+    };
 
     const nextPath = claimId ? `/timeline?id=${claimId}` : "/timeline";
 
@@ -177,9 +188,28 @@ function ClaimDetails() {
                     </div>
                 )}
 
-                <button className="next-btn" onClick={() => navigate(nextPath)}>
-                    Continue to Timeline →
-                </button>
+                <div style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
+                    <button className="next-btn" onClick={() => navigate(nextPath)}>
+                        Continue to Timeline →
+                    </button>
+                    <button 
+                        onClick={handleDelete}
+                        style={{
+                            padding: "12px 24px",
+                            border: "none",
+                            borderRadius: "12px",
+                            background: "#ef4444",
+                            color: "white",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "0.3s"
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = "#dc2626"}
+                        onMouseOut={(e) => e.currentTarget.style.background = "#ef4444"}
+                    >
+                        🗑️ Delete Claim
+                    </button>
+                </div>
             </div>
         </Layout>
     );
