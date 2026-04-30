@@ -135,7 +135,7 @@ function Dashboard() {
                 <div className="analytics-grid">
 
                     <div className="analytics-card approved-card">
-                        <div className="circle approved-circle">
+                        <div className="circle approved-circle" style={{ background: `conic-gradient(#22c55e ${approvedPct}%, #e5e7eb 0%)` }}>
                             {approvedPct}%
                         </div>
                         <h3>Approved Claims</h3>
@@ -143,7 +143,7 @@ function Dashboard() {
                     </div>
 
                     <div className="analytics-card rejected-card">
-                        <div className="circle rejected-circle">
+                        <div className="circle rejected-circle" style={{ background: `conic-gradient(#ef4444 ${rejectedPct}%, #e5e7eb 0%)` }}>
                             {rejectedPct}%
                         </div>
                         <h3>Rejected Claims</h3>
@@ -151,7 +151,7 @@ function Dashboard() {
                     </div>
 
                     <div className="analytics-card pending-card">
-                        <div className="circle pending-circle">
+                        <div className="circle pending-circle" style={{ background: `conic-gradient(#f59e0b ${pendingPct}%, #e5e7eb 0%)` }}>
                             {pendingPct}%
                         </div>
                         <h3>Pending Claims</h3>
