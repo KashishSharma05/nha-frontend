@@ -44,6 +44,12 @@ export function uploadClaimDocument(claimId, file) {
   return api.upload(`/api/claims/upload/${claimId}/`, formData);
 }
 
+export function extractDataFromDocument(file) {
+  const formData = new FormData();
+  formData.append("document", file);
+  return api.upload(`/api/verification/extract/`, formData);
+}
+
 export function bulkCreateClaims(claimsArray) {
   // Backend expects: { "claims": [...] }
   return api.post("/api/claims/bulk-create/", { claims: claimsArray });

@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/upload.css";
-import { createClaim, uploadClaimDocument, deleteClaim } from "../services/claimsService";
+import { createClaim, uploadClaimDocument, deleteClaim, extractDataFromDocument } from "../services/claimsService";
 
 const OCR_STAGES = [
     { label: "Uploading document...",      pct: 15 },
@@ -124,6 +124,7 @@ function Upload() {
     const [progress,    setProgress]    = useState(0);
     const [stageLabel,  setStageLabel]  = useState("");
     const [error,       setError]       = useState("");
+    const [aiLoading,   setAiLoading]   = useState(false);
 
     // Medical form state
     const [diagCode,    setDiagCode]    = useState("");
@@ -191,6 +192,40 @@ function Upload() {
     // Count checked docs
     const checkedCount = Object.values(docFlags).filter(Boolean).length;
     const totalDocs    = requiredDocs.length;
+
+    const handleAIExtract = async () => {
+        if (!file) return;
+        setAiLoading(true);
+        setError("");
+        try {
+            const response = await extractDataFromDocument(file);
+            const data = response?.extracted_data;
+            if (!data) throw new Error("No data returned from AI");
+
+            if (data.patient_age) setPatientAge(String(data.patient_age));
+            if (data.alos) setAlos(String(data.alos));
+            if (data.hb_level) setHbLevel(String(data.hb_level));
+            if (data.fever_duration_days) setFeverDays(String(data.fever_duration_days));
+            if (data.has_previous_cholecystectomy !== undefined) setPrevChol(data.has_previous_cholecystectomy);
+
+            // Update document checkboxes based on AI detection
+            const updatedDocs = { ...docFlags };
+            requiredDocs.forEach(doc => {
+                if (data[doc.key] !== undefined) {
+                    updatedDocs[doc.key] = data[doc.key];
+                }
+            });
+            setDocFlags(updatedDocs);
+            
+            // Show success alert
+            alert("✨ AI successfully extracted clinical data and verified documents!");
+
+        } catch (err) {
+            setError("AI Extraction failed: " + (err.message || "Please make sure GEMINI_API_KEY is set in the backend .env"));
+        } finally {
+            setAiLoading(false);
+        }
+    };
 
     const handleProcess = async () => {
         if (!file)     { setError("Please upload a document first"); return; }
@@ -379,13 +414,28 @@ function Upload() {
                                 )}
                             </div>
                             {file && !processing && (
-                                <div className="file-preview">
-                                    <div className="file-icon">{file.type === "application/pdf" ? "📋" : "🖼️"}</div>
-                                    <div className="file-info">
-                                        <h3>{file.name}</h3>
-                                        <p>{(file.size / (1024 * 1024)).toFixed(2)} MB · {file.type.split("/")[1].toUpperCase()}</p>
+                                <div className="file-preview-container" style={{ marginTop: "15px" }}>
+                                    <div className="file-preview">
+                                        <div className="file-icon">{file.type === "application/pdf" ? "📋" : "🖼️"}</div>
+                                        <div className="file-info">
+                                            <h3>{file.name}</h3>
+                                            <p>{(file.size / (1024 * 1024)).toFixed(2)} MB · {file.type.split("/")[1].toUpperCase()}</p>
+                                        </div>
+                                        <button className="remove-btn" onClick={removeFile}>✕</button>
                                     </div>
-                                    <button className="remove-btn" onClick={removeFile}>✕</button>
+                                    <button 
+                                        className="ai-extract-btn" 
+                                        onClick={handleAIExtract} 
+                                        disabled={aiLoading}
+                                        style={{
+                                            marginTop: "10px", width: "100%", padding: "12px", borderRadius: "12px",
+                                            background: "linear-gradient(135deg, #10b981, #059669)", color: "white",
+                                            border: "none", fontWeight: "bold", cursor: aiLoading ? "not-allowed" : "pointer",
+                                            opacity: aiLoading ? 0.7 : 1
+                                        }}
+                                    >
+                                        {aiLoading ? "✨ Analyzing Document with Gemini AI..." : "✨ Auto-Fill Form & Verify Documents with AI"}
+                                    </button>
                                 </div>
                             )}
                         </div>
