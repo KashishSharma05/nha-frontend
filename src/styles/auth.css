@@ -123,6 +123,30 @@
     transform: translateY(-2px);
 }
 
+.login-box button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ERROR MESSAGE */
+
+.auth-error {
+    color: #ef4444;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    margin-bottom: 14px;
+}
+
+body.dark-mode .auth-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
 /* LINKS */
 
 .forgot-link {
@@ -176,3 +200,56 @@ body.dark-mode .toggle-auth {
 body.dark-mode .toggle-auth a {
     color: #818cf8;
 }
+
+/* SUCCESS BOX — ForgotPassword confirmation */
+
+.success-box {
+    text-align: center;
+    padding: 20px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+.success-icon {
+    font-size: 52px;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.success-box h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.success-box p {
+    color: #6b7280;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.back-to-login-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.back-to-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
+}
+
+body.dark-mode .success-box h3 { color: white; }
+body.dark-mode .success-box p  { color: #94a3b8; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

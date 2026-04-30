@@ -1,23 +1,61 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import { register } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
 function Register() {
     const navigate = useNavigate();
+    const { refreshUser } = useAuth();
 
     const [name, setName] = useState("");
     const [hospital, setHospital] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!name || !hospital || !email || !password) {
-            alert("Please fill all fields");
+            setError("Please fill all fields");
             return;
         }
 
-        // Backend API later
-        navigate("/dashboard");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+
+        // Password strength: min 8 chars, at least 1 uppercase, 1 lowercase, 1 number
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters long");
+            return;
+        }
+        if (!/[A-Z]/.test(password)) {
+            setError("Password must contain at least one uppercase letter");
+            return;
+        }
+        if (!/[a-z]/.test(password)) {
+            setError("Password must contain at least one lowercase letter");
+            return;
+        }
+        if (!/[0-9]/.test(password)) {
+            setError("Password must contain at least one number");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            await register({ username: name, email, password });
+            await refreshUser();
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "Registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -105,8 +143,12 @@ function Register() {
                         }
                     />
 
-                    <button onClick={handleRegister}>
-                        Create Account
+                    {error && (
+                        <p className="auth-error">{error}</p>
+                    )}
+
+                    <button onClick={handleRegister} disabled={loading}>
+                        {loading ? "Creating Account..." : "Create Account"}
                     </button>
 
                     <p className="toggle-auth">

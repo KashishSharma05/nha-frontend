@@ -1,22 +1,48 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/decision.css";
+import { getClaimReport } from "../services/reportsService";
 
 function Decision() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const claimId = searchParams.get("id");
 
-    const evidences = [
-        "Treatment timeline verified",
-        "Lab reports matched",
-        "Prescription validated",
-        "Billing anomaly detected",
-    ];
+    const [report, setReport]   = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError]     = useState("");
 
-    const reasons = [
-        "Claim follows major STG guidelines",
-        "Minor billing mismatch found",
-        "Manual verification recommended",
-    ];
+    useEffect(() => {
+        if (!claimId) {
+            setError("No claim ID provided. Redirecting to dashboard...");
+            setLoading(false);
+            const timer = setTimeout(() => navigate("/dashboard"), 2000);
+            return () => clearTimeout(timer);
+        }
+
+        getClaimReport(claimId)
+            .then(setReport)
+            .catch((err) => setError(err.message || "Failed to load decision report."))
+            .finally(() => setLoading(false));
+    }, [claimId]);
+
+    const verdict        = report?.verdict        ?? report?.decision       ?? "CONDITIONAL";
+    const summary        = report?.summary        ?? report?.decision_summary ?? "Claim Requires Manual Review";
+    const description    = report?.description    ?? report?.detail         ?? "Claim passed core validation but has minor anomalies";
+    const evidences      = report?.evidences      ?? report?.evidence_list  ?? report?.evidence ?? [];
+    const reasons        = report?.reasons        ?? report?.reason_list    ?? report?.reason   ?? [];
+    const payableAmount  = report?.payable_amount ?? report?.payableAmount  ?? "—";
+    const totalClaimed   = report?.total_claimed  ?? report?.totalClaimed   ?? "—";
+
+    // Map verdict string to CSS class
+    const verdictClass = {
+        "APPROVED":    "approved",
+        "REJECTED":    "rejected",
+        "CONDITIONAL": "conditional",
+    }[String(verdict).toUpperCase()] ?? "conditional";
+
+    const nextPath = claimId ? `/reports?id=${claimId}` : "/reports";
 
     return (
         <Layout>
@@ -29,62 +55,67 @@ function Decision() {
                     </p>
                 </div>
 
+                {error && <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>}
+
                 <div className="decision-result">
 
-                    <div className="decision-badge conditional">
-                        CONDITIONAL
+                    <div className={`decision-badge ${verdictClass}`}>
+                        {loading ? "…" : verdict}
                     </div>
 
-                    <h2>Claim Requires Manual Review</h2>
+                    <h2>{loading ? "Loading decision..." : summary}</h2>
 
                     <p>
-                        Claim passed core validation but has
-                        minor anomalies
+                        {loading ? "" : description}
                     </p>
 
                 </div>
 
-                <div className="decision-grid">
+                {!loading && (
+                    <div className="decision-grid">
 
-                    {/* Reasons */}
-                    <div className="decision-card">
-                        <h2>Reasons</h2>
+                        {/* Reasons */}
+                        <div className="decision-card">
+                            <h2>Reasons</h2>
 
-                        {reasons.map((item, index) => (
-                            <div
-                                className="reason-item"
-                                key={index}
-                            >
-                                {item}
-                            </div>
-                        ))}
+                            {reasons.length > 0 ? (
+                                reasons.map((item, index) => (
+                                    <div className="reason-item" key={index}>
+                                        {typeof item === "string" ? item : item.reason ?? item.text ?? JSON.stringify(item)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No reasons provided</p>
+                            )}
+                        </div>
+
+                        {/* Evidence */}
+                        <div className="decision-card">
+                            <h2>Evidence</h2>
+
+                            {evidences.length > 0 ? (
+                                evidences.map((item, index) => (
+                                    <div className="evidence-item" key={index}>
+                                        {typeof item === "string" ? item : item.evidence ?? item.text ?? JSON.stringify(item)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No evidence provided</p>
+                            )}
+                        </div>
+
                     </div>
-
-                    {/* Evidence */}
-                    <div className="decision-card">
-                        <h2>Evidence</h2>
-
-                        {evidences.map((item, index) => (
-                            <div
-                                className="evidence-item"
-                                key={index}
-                            >
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-
-                </div>
+                )}
 
                 <div className="payout-box">
                     <h2>Suggested Payable Amount</h2>
-                    <h1>₹32,000</h1>
-                    <p>Total Claimed: ₹42,000</p>
+                    <h1>{loading ? "…" : payableAmount}</h1>
+                    <p>Total Claimed: {loading ? "…" : totalClaimed}</p>
                 </div>
 
                 <button
                     className="next-btn"
-                    onClick={() => navigate("/reports")}
+                    onClick={() => navigate(nextPath)}
                 >
                     Generate Final Report →
                 </button>

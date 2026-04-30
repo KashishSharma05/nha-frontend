@@ -1,20 +1,41 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import { login } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
     const navigate = useNavigate();
+    const { refreshUser } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!email || !password) {
-            alert("Please fill all fields");
+            setError("Please fill all fields");
             return;
         }
 
-        navigate("/dashboard");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            await login({ email, password });
+            await refreshUser();
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "Login failed. Please check your credentials.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -91,8 +112,12 @@ function Login() {
                         Forgot Password?
                     </Link>
 
-                    <button onClick={handleLogin}>
-                        Login
+                    {error && (
+                        <p className="auth-error">{error}</p>
+                    )}
+
+                    <button onClick={handleLogin} disabled={loading}>
+                        {loading ? "Logging in..." : "Login"}
                     </button>
 
                     <p className="toggle-auth">

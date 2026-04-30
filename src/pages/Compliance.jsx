@@ -1,21 +1,39 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/compliance.css";
+import { getComplianceReport } from "../services/reportsService";
 
 function Compliance() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const claimId = searchParams.get("id");
 
-    const matchedRules = [
-        "Correct antibiotic prescribed",
-        "Required blood tests completed",
-        "Admission timeline valid",
-        "Treatment duration acceptable",
-    ];
+    const [report, setReport]   = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError]     = useState("");
 
-    const failedRules = [
-        "Duplicate lab billing detected",
-        "Extra medicine outside protocol",
-    ];
+    useEffect(() => {
+        if (!claimId) {
+            setError("No claim ID provided. Redirecting to dashboard...");
+            setLoading(false);
+            const timer = setTimeout(() => navigate("/dashboard"), 2000);
+            return () => clearTimeout(timer);
+        }
+
+        getComplianceReport(claimId)
+            .then(setReport)
+            .catch((err) => setError(err.message || "Failed to load compliance report."))
+            .finally(() => setLoading(false));
+    }, [claimId]);
+
+    const matchedRules = report?.matched_rules ?? report?.matchedRules ?? [];
+    const failedRules  = report?.failed_rules  ?? report?.failedRules  ?? [];
+    const score        = report?.compliance_score ?? report?.complianceScore ?? report?.score ?? "—";
+    const riskLabel    = report?.risk_level ?? report?.riskLevel ?? report?.risk ?? "—";
+    const recommendation = report?.recommendation ?? report?.ai_recommendation ?? "Waiting for analysis...";
+
+    const nextPath = claimId ? `/decision?id=${claimId}` : "/decision";
 
     return (
         <Layout>
@@ -26,9 +44,11 @@ function Compliance() {
                     <p>Medical protocol validation report</p>
                 </div>
 
+                {error && <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>}
+
                 <div className="compliance-score-card">
                     <div className="score-circle">
-                        82%
+                        {loading ? "…" : `${score}${typeof score === "number" ? "%" : ""}`}
                     </div>
 
                     <div className="score-details">
@@ -38,53 +58,57 @@ function Compliance() {
                         </p>
 
                         <span className="risk-badge">
-                            Medium Risk
+                            {loading ? "Loading..." : riskLabel}
                         </span>
                     </div>
                 </div>
 
-                <div className="rules-grid">
+                {!loading && (
+                    <div className="rules-grid">
 
-                    {/* Matched Rules */}
-                    <div className="rules-card">
-                        <h2>Matched Rules</h2>
+                        {/* Matched Rules */}
+                        <div className="rules-card">
+                            <h2>Matched Rules</h2>
 
-                        {matchedRules.map((rule, index) => (
-                            <div
-                                className="rule success"
-                                key={index}
-                            >
-                                {rule}
-                            </div>
-                        ))}
+                            {matchedRules.length > 0 ? (
+                                matchedRules.map((rule, index) => (
+                                    <div className="rule success" key={index}>
+                                        {typeof rule === "string" ? rule : rule.name ?? rule.rule ?? JSON.stringify(rule)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No matched rules</p>
+                            )}
+                        </div>
+
+                        {/* Failed Rules */}
+                        <div className="rules-card">
+                            <h2>Failed Rules</h2>
+
+                            {failedRules.length > 0 ? (
+                                failedRules.map((rule, index) => (
+                                    <div className="rule failed" key={index}>
+                                        {typeof rule === "string" ? rule : rule.name ?? rule.rule ?? JSON.stringify(rule)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#22c55e" }}>All rules passed ✓</p>
+                            )}
+                        </div>
+
                     </div>
-
-                    {/* Failed Rules */}
-                    <div className="rules-card">
-                        <h2>Failed Rules</h2>
-
-                        {failedRules.map((rule, index) => (
-                            <div
-                                className="rule failed"
-                                key={index}
-                            >
-                                {rule}
-                            </div>
-                        ))}
-                    </div>
-
-                </div>
+                )}
 
                 <div className="recommendation-box">
                     <h2>AI Recommendation</h2>
                     <p>
-                        Manual review suggested before final approval
+                        {loading ? "Analyzing..." : recommendation}
                     </p>
                 </div>
 
                 <button
                     className="next-btn"
-                    onClick={() => navigate("/decision")}
+                    onClick={() => navigate(nextPath)}
                 >
                     Continue to Decision →
                 </button>

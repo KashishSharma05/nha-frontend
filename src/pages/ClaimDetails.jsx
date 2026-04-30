@@ -1,55 +1,52 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/claimDetails.css";
+import { getClaimById } from "../services/claimsService";
 
 function ClaimDetails() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const claimId = searchParams.get("id");
 
-    const patientData = {
-        name: "Ramesh Kumar",
-        age: "45",
-        gender: "Male",
-        patientId: "P123456",
-        hospital: "City Care Hospital",
-        admission: "12 May 2024",
-    };
+    const [claim, setClaim]         = useState(null);
+    const [loading, setLoading]     = useState(true);
+    const [error, setError]         = useState("");
 
-    const diagnosis = [
-        "Typhoid Fever",
-        "High Fever",
-        "Weakness",
-    ];
+    useEffect(() => {
+        if (!claimId) {
+            setError("No claim ID provided. Redirecting to dashboard...");
+            setLoading(false);
+            const timer = setTimeout(() => navigate("/dashboard"), 2000);
+            return () => clearTimeout(timer);
+        }
 
-    const treatment = [
-        "IV Fluids",
-        "Antibiotics",
-        "Blood Test",
-        "X-Ray",
-    ];
+        getClaimById(claimId)
+            .then(setClaim)
+            .catch((err) => setError(err.message || "Failed to load claim details."))
+            .finally(() => setLoading(false));
+    }, [claimId]);
 
-    const costs = [
-        {
-            item: "Room Charges",
-            amount: "₹15,000",
-        },
-        {
-            item: "Medicines",
-            amount: "₹8,500",
-        },
-        {
-            item: "Lab Tests",
-            amount: "₹12,000",
-        },
-        {
-            item: "Doctor Fees",
-            amount: "₹6,500",
-        },
-    ];
+    // Normalise fields — backend may use snake_case or camelCase
+    const patientData = claim
+        ? {
+              Name:       claim.patient_name   ?? claim.patientName   ?? "—",
+              Age:        claim.patient_age     ?? claim.age           ?? "—",
+              Gender:     claim.gender                                 ?? "—",
+              "Patient ID": claim.patient_id   ?? claim.patientId     ?? "—",
+              Hospital:   claim.hospital_name  ?? claim.hospital      ?? "—",
+              Admission:  claim.admission_date ?? claim.admission      ?? "—",
+          }
+        : {};
 
-    const riskFlags = [
-        "Duplicate Lab Test",
-        "Extra Medicine Entry",
-    ];
+    const diagnosis  = claim?.diagnosis   ?? claim?.diagnoses ?? [];
+    const treatment  = claim?.treatment   ?? claim?.treatments ?? [];
+    const costs      = claim?.costs       ?? claim?.cost_breakdown ?? [];
+    const riskFlags  = claim?.risk_flags  ?? claim?.riskFlags ?? [];
+    const confidence = claim?.ocr_confidence ?? claim?.ocrConfidence ?? "—";
+    const total      = claim?.total_amount ?? claim?.totalAmount ?? "—";
+
+    const nextPath = claimId ? `/timeline?id=${claimId}` : "/timeline";
 
     return (
         <Layout>
@@ -63,82 +60,102 @@ function ClaimDetails() {
 
                     <div className="confidence-box">
                         <span>OCR Confidence</span>
-                        <h2>94%</h2>
+                        <h2>{loading ? "…" : `${confidence}${typeof confidence === "number" ? "%" : ""}`}</h2>
                     </div>
                 </div>
 
-                <div className="claim-grid">
+                {error && <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>}
 
-                    {/* Patient Info */}
-                    <div className="claim-card">
-                        <h2>Patient Details</h2>
+                {loading ? (
+                    <p style={{ color: "#94a3b8", padding: "2rem" }}>Loading claim data...</p>
+                ) : (
+                    <div className="claim-grid">
 
-                        {Object.entries(patientData).map(
-                            ([key, value], index) => (
+                        {/* Patient Info */}
+                        <div className="claim-card">
+                            <h2>Patient Details</h2>
+
+                            {Object.entries(patientData).map(([key, value], index) => (
                                 <div className="row" key={index}>
                                     <span>{key}</span>
                                     <strong>{value}</strong>
                                 </div>
-                            )
-                        )}
-                    </div>
-
-                    {/* Diagnosis */}
-                    <div className="claim-card">
-                        <h2>Diagnosis</h2>
-
-                        {diagnosis.map((item, index) => (
-                            <div className="tag red" key={index}>
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Treatment */}
-                    <div className="claim-card">
-                        <h2>Treatment Plan</h2>
-
-                        {treatment.map((item, index) => (
-                            <div className="tag green" key={index}>
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Cost Breakdown */}
-                    <div className="claim-card">
-                        <h2>Cost Breakdown</h2>
-
-                        {costs.map((item, index) => (
-                            <div className="row" key={index}>
-                                <span>{item.item}</span>
-                                <strong>{item.amount}</strong>
-                            </div>
-                        ))}
-
-                        <div className="total-box">
-                            Total Claim: ₹42,000
-                        </div>
-                    </div>
-
-                    {/* Risk Flags */}
-                    <div className="claim-card full-width">
-                        <h2>Risk Flags</h2>
-
-                        <div className="flags">
-                            {riskFlags.map((item, index) => (
-                                <div className="flag" key={index}>
-                                    {item}
-                                </div>
                             ))}
                         </div>
-                    </div>
 
-                </div>
+                        {/* Diagnosis */}
+                        <div className="claim-card">
+                            <h2>Diagnosis</h2>
+
+                            {diagnosis.length > 0 ? (
+                                diagnosis.map((item, index) => (
+                                    <div className="tag red" key={index}>
+                                        {typeof item === "string" ? item : item.name ?? item.label ?? JSON.stringify(item)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No diagnosis data</p>
+                            )}
+                        </div>
+
+                        {/* Treatment */}
+                        <div className="claim-card">
+                            <h2>Treatment Plan</h2>
+
+                            {treatment.length > 0 ? (
+                                treatment.map((item, index) => (
+                                    <div className="tag green" key={index}>
+                                        {typeof item === "string" ? item : item.name ?? item.label ?? JSON.stringify(item)}
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No treatment data</p>
+                            )}
+                        </div>
+
+                        {/* Cost Breakdown */}
+                        <div className="claim-card">
+                            <h2>Cost Breakdown</h2>
+
+                            {costs.length > 0 ? (
+                                costs.map((item, index) => (
+                                    <div className="row" key={index}>
+                                        <span>{item.item ?? item.name ?? item.label ?? "Item"}</span>
+                                        <strong>{item.amount ?? item.cost ?? "—"}</strong>
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: "#94a3b8" }}>No cost data</p>
+                            )}
+
+                            <div className="total-box">
+                                Total Claim: {total}
+                            </div>
+                        </div>
+
+                        {/* Risk Flags */}
+                        <div className="claim-card full-width">
+                            <h2>Risk Flags</h2>
+
+                            <div className="flags">
+                                {riskFlags.length > 0 ? (
+                                    riskFlags.map((item, index) => (
+                                        <div className="flag" key={index}>
+                                            {typeof item === "string" ? item : item.message ?? item.flag ?? JSON.stringify(item)}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p style={{ color: "#22c55e" }}>No risk flags detected ✓</p>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+                )}
 
                 <button
                     className="next-btn"
-                    onClick={() => navigate("/timeline")}
+                    onClick={() => navigate(nextPath)}
                 >
                     Continue to Timeline →
                 </button>
