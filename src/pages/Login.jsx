@@ -96,25 +96,27 @@ function Login() {
 
                     {/* Password */}
                     <div className="field-group">
-                        <input
-                            type={showPwd ? "text" : "password"}
-                            placeholder="Enter Password"
-                            value={password}
-                            autoComplete="current-password"
-                            className={fieldClass("password")}
-                            onChange={(e) => { setPassword(e.target.value); setApiError(""); }}
-                            onBlur={() => touch("password")}
-                            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                        />
-                        <button
-                            type="button"
-                            className="pwd-toggle"
-                            tabIndex={-1}
-                            onClick={() => setShowPwd((v) => !v)}
-                            aria-label={showPwd ? "Hide password" : "Show password"}
-                        >
-                            {showPwd ? "🙈" : "👁️"}
-                        </button>
+                        <div className="input-wrapper">
+                            <input
+                                type={showPwd ? "text" : "password"}
+                                placeholder="Enter Password"
+                                value={password}
+                                autoComplete="current-password"
+                                className={fieldClass("password")}
+                                onChange={(e) => { setPassword(e.target.value); setApiError(""); }}
+                                onBlur={() => touch("password")}
+                                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                            />
+                            <button
+                                type="button"
+                                className="pwd-toggle"
+                                tabIndex={-1}
+                                onClick={() => setShowPwd((v) => !v)}
+                                aria-label={showPwd ? "Hide password" : "Show password"}
+                            >
+                                {showPwd ? "🙈" : "👁️"}
+                            </button>
+                        </div>
                         {touched.password && errors.password && (
                             <p className="field-error">⚠ {errors.password}</p>
                         )}

@@ -150,25 +150,27 @@ function Register() {
 
                     {/* Password + strength */}
                     <div className="field-group">
-                        <input
-                            type={showPwd ? "text" : "password"}
-                            placeholder="Create Password (min 8 chars)"
-                            value={password}
-                            autoComplete="new-password"
-                            className={fieldClass("password")}
-                            onChange={(e) => { setPassword(e.target.value); setApiError(""); }}
-                            onBlur={() => touch("password")}
-                            onKeyDown={(e) => e.key === "Enter" && handleRegister()}
-                        />
-                        <button
-                            type="button"
-                            className="pwd-toggle"
-                            tabIndex={-1}
-                            onClick={() => setShowPwd((v) => !v)}
-                            aria-label={showPwd ? "Hide password" : "Show password"}
-                        >
-                            {showPwd ? "🙈" : "👁️"}
-                        </button>
+                        <div className="input-wrapper">
+                            <input
+                                type={showPwd ? "text" : "password"}
+                                placeholder="Create Password (min 8 chars)"
+                                value={password}
+                                autoComplete="new-password"
+                                className={fieldClass("password")}
+                                onChange={(e) => { setPassword(e.target.value); setApiError(""); }}
+                                onBlur={() => touch("password")}
+                                onKeyDown={(e) => e.key === "Enter" && handleRegister()}
+                            />
+                            <button
+                                type="button"
+                                className="pwd-toggle"
+                                tabIndex={-1}
+                                onClick={() => setShowPwd((v) => !v)}
+                                aria-label={showPwd ? "Hide password" : "Show password"}
+                            >
+                                {showPwd ? "🙈" : "👁️"}
+                            </button>
+                        </div>
 
                         {/* Strength bar — shown as soon as user starts typing */}
                         {password.length > 0 && (
