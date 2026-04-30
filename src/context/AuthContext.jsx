@@ -25,11 +25,16 @@ export function AuthProvider({ children }) {
             setUser(profile);
             setIsAuthenticated(true);
         } catch (err) {
-            // Token invalid or expired — clear it
+            // Token invalid or expired — clear it and send back to login
             console.error("[AuthContext] Failed to refresh user:", err.message);
             clearTokens();
             setUser(null);
             setIsAuthenticated(false);
+            // Only redirect if not already on an auth page
+            const authPages = ["/", "/register", "/forgot-password"];
+            if (!authPages.includes(window.location.pathname)) {
+                window.location.replace("/");
+            }
         } finally {
             setLoading(false);
         }
