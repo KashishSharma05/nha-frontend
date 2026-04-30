@@ -1,0 +1,153 @@
+.timeline-page {
+    min-height: 100vh;
+    padding: 40px;
+    background: linear-gradient(
+        135deg,
+        #f8fafc,
+        #eef2ff
+    );
+}
+
+/* HEADER */
+
+.timeline-header h1 {
+    font-size: 42px;
+    color: #111827;
+}
+
+.timeline-header p {
+    color: #6b7280;
+    margin-bottom: 40px;
+}
+
+/* WRAPPER */
+
+.timeline-wrapper {
+    position: relative;
+    margin-left: 30px;
+    border-left: 4px solid #4f46e5;
+    padding-left: 30px;
+}
+
+/* ITEM */
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 35px;
+}
+
+/* DOT */
+
+.timeline-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    position: absolute;
+    left: -42px;
+    top: 18px;
+}
+
+.completed {
+    background: #16a34a;
+}
+
+.active {
+    background: #f59e0b;
+}
+
+.pending {
+    background: #d1d5db;
+}
+
+/* CARD */
+
+.timeline-card {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(
+        0,
+        0,
+        0,
+        0.08
+    );
+    transition: 0.3s;
+}
+
+.timeline-card:hover {
+    transform: translateY(-5px);
+}
+
+.timeline-card span {
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.timeline-card h3 {
+    margin: 10px 0;
+    color: #111827;
+}
+
+.timeline-card p {
+    color: #6b7280;
+}
+
+/* BUTTON */
+
+.timeline-btn {
+    margin-top: 35px;
+    padding: 16px 28px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(
+        135deg,
+        #4f46e5,
+        #6366f1
+    );
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.timeline-btn:hover {
+    transform: translateY(-4px);
+}
+
+/* DARK MODE */
+
+body.dark-mode .timeline-page {
+    background: #0f172a;
+}
+
+body.dark-mode .timeline-header h1 {
+    color: white;
+}
+
+body.dark-mode .timeline-header p {
+    color: #cbd5e1;
+}
+
+body.dark-mode .timeline-wrapper {
+    border-left: 4px solid #818cf8;
+}
+
+body.dark-mode .timeline-card {
+    background: #1e293b;
+    box-shadow: none;
+}
+
+body.dark-mode .timeline-card h3 {
+    color: white;
+}
+
+body.dark-mode .timeline-card p {
+    color: #cbd5e1;
+}
+
+body.dark-mode .timeline-card span {
+    color: #a5b4fc;
+}
+
+body.dark-mode .pending {
+    background: #475569;
+}

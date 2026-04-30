@@ -1,0 +1,195 @@
+.decision-page {
+    min-height: 100vh;
+    padding: 40px;
+    background: linear-gradient(
+        135deg,
+        #f8fafc,
+        #eef2ff
+    );
+}
+
+/* HEADER */
+
+.decision-header h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.decision-header p {
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+
+/* RESULT CARD */
+
+.decision-result {
+    background: white;
+    padding: 40px;
+    border-radius: 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.decision-badge {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.conditional {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.pass {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.fail {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.decision-result h2 {
+    font-size: 30px;
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.decision-result p {
+    color: #6b7280;
+}
+
+/* GRID */
+
+.decision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.decision-card {
+    background: white;
+    padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+}
+
+.decision-card h2 {
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+/* ITEMS */
+
+.reason-item,
+.evidence-item {
+    padding: 18px;
+    margin-bottom: 15px;
+    border-radius: 16px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.reason-item {
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+.evidence-item {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.reason-item:hover,
+.evidence-item:hover {
+    transform: translateY(-4px);
+}
+
+/* PAYOUT */
+
+.payout-box {
+    background: white;
+    padding: 35px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.payout-box h2 {
+    margin-bottom: 15px;
+    color: #111827;
+}
+
+.payout-box h1 {
+    font-size: 42px;
+    color: #4f46e5;
+    margin-bottom: 10px;
+}
+
+.payout-box p {
+    color: #6b7280;
+}
+
+/* DARK MODE */
+
+body.dark-mode .decision-page {
+    background: #0f172a;
+}
+
+body.dark-mode .decision-header h1,
+body.dark-mode .decision-result h2,
+body.dark-mode .decision-card h2,
+body.dark-mode .payout-box h2 {
+    color: white;
+}
+
+body.dark-mode .decision-header p,
+body.dark-mode .decision-result p,
+body.dark-mode .payout-box p {
+    color: #cbd5e1;
+}
+
+body.dark-mode .decision-result,
+body.dark-mode .decision-card,
+body.dark-mode .payout-box {
+    background: #1e293b;
+    box-shadow: none;
+}
+
+body.dark-mode .reason-item {
+    background: #312e81;
+    color: white;
+}
+
+body.dark-mode .evidence-item {
+    background: #14532d;
+    color: white;
+}
+
+body.dark-mode .conditional {
+    background: #78350f;
+    color: white;
+}
+
+body.dark-mode .pass {
+    background: #14532d;
+    color: white;
+}
+
+body.dark-mode .fail {
+    background: #7f1d1d;
+    color: white;
+}
+
+body.dark-mode .payout-box h1 {
+    color: #818cf8;
+}
