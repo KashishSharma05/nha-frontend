@@ -9,11 +9,7 @@
 .left-panel {
     width: 50%;
     padding: 60px;
-    background: linear-gradient(
-        135deg,
-        #4f46e5,
-        #7c3aed
-    );
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
     color: white;
     display: flex;
     flex-direction: column;
@@ -21,17 +17,8 @@
     gap: 25px;
 }
 
-.left-panel h1 {
-    font-size: 54px;
-    font-weight: 700;
-    color: white;
-}
-
-.left-panel p {
-    font-size: 18px;
-    opacity: 0.95;
-    color: white;
-}
+.left-panel h1 { font-size: 54px; font-weight: 700; color: white; }
+.left-panel p  { font-size: 18px; opacity: 0.95; color: white; }
 
 /* FEATURE BOX */
 
@@ -41,15 +28,8 @@
     border-radius: 20px;
     backdrop-filter: blur(12px);
 }
-
-.feature-box h3 {
-    margin-bottom: 8px;
-    color: white;
-}
-
-.feature-box p {
-    color: white;
-}
+.feature-box h3 { margin-bottom: 8px; color: white; }
+.feature-box p  { color: white; }
 
 /* RIGHT PANEL */
 
@@ -70,57 +50,137 @@
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.08);
 }
+.login-box h2 { font-size: 34px; margin-bottom: 10px; color: #111827; }
+.login-box p  { color: #6b7280; margin-bottom: 20px; }
 
-.login-box h2 {
-    font-size: 34px;
-    margin-bottom: 10px;
-    color: #111827;
+/* ── FIELD GROUP (input + error) ────────────────── */
+
+.field-group {
+    position: relative;
+    margin-bottom: 14px;
 }
 
-.login-box p {
-    color: #6b7280;
-    margin-bottom: 20px;
-}
-
-/* INPUT */
-
-.login-box input {
+.field-group input {
     width: 100%;
-    padding: 16px;
-    margin-bottom: 18px;
-    border: 1px solid #e5e7eb;
+    padding: 15px 44px 15px 16px;
+    border: 1.5px solid #e5e7eb;
     border-radius: 14px;
     font-size: 15px;
     background: white;
     color: #111827;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    box-sizing: border-box;
 }
 
-.login-box input:focus {
+.field-group input:focus {
     outline: none;
     border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
 }
 
-/* BUTTON */
+.field-group input.is-error {
+    border-color: #ef4444;
+    background: #fff8f8;
+}
+.field-group input.is-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+}
+
+.field-group input.is-success {
+    border-color: #22c55e;
+    background: #f0fdf4;
+}
+.field-group input.is-success:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+}
+
+/* Per-field error text */
+.field-error {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 5px;
+    padding-left: 4px;
+    animation: slideDown 0.15s ease;
+}
+
+/* Show/hide password toggle */
+.pwd-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none !important;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #9ca3af;
+    padding: 0;
+    line-height: 1;
+    width: auto !important;
+    margin-top: 0 !important;
+    box-shadow: none !important;
+    transition: color 0.2s;
+}
+.pwd-toggle:hover,
+.pwd-toggle:focus {
+    color: #4f46e5;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+/* ── PASSWORD STRENGTH BAR ─────────────────────── */
+
+.strength-wrapper {
+    margin-top: 6px;
+    padding: 0 4px;
+}
+
+.strength-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.35s ease, background-color 0.35s ease;
+}
+
+.strength-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    text-align: right;
+    letter-spacing: 0.3px;
+}
+
+/* ── BUTTON ─────────────────────────────────────── */
 
 .login-box button {
     width: 100%;
     padding: 16px;
+    margin-top: 8px;
     border: none;
-    background: linear-gradient(
-        135deg,
-        #4f46e5,
-        #6366f1
-    );
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: white;
     border-radius: 14px;
     cursor: pointer;
     font-size: 16px;
     font-weight: 600;
-    transition: 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.login-box button:hover {
+.login-box button:hover:not(:disabled) {
     transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35);
 }
 
 .login-box button:disabled {
@@ -129,7 +189,7 @@
     transform: none;
 }
 
-/* ERROR MESSAGE */
+/* ── GLOBAL ERROR BANNER ─────────────────────────── */
 
 .auth-error {
     color: #ef4444;
@@ -141,93 +201,66 @@
     margin-bottom: 14px;
 }
 
-body.dark-mode .auth-error {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-}
-
 /* LINKS */
 
 .forgot-link {
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     color: #4f46e5;
     text-decoration: none;
+    font-size: 14px;
 }
 
 .toggle-auth {
     margin-top: 20px;
     text-align: center;
+    font-size: 14px;
+    color: #6b7280;
 }
 
-/* DARK MODE */
+.toggle-auth a { color: #4f46e5; text-decoration: none; font-weight: 500; }
 
-body.dark-mode .right-panel {
-    background: #0f172a;
-}
+/* ── DARK MODE ──────────────────────────────────── */
 
-body.dark-mode .login-box {
-    background: #1e293b;
-}
+body.dark-mode .right-panel  { background: #0f172a; }
+body.dark-mode .login-box    { background: #1e293b; }
+body.dark-mode .login-box h2 { color: white; }
+body.dark-mode .login-box p  { color: #cbd5e1; }
+body.dark-mode .toggle-auth  { color: #94a3b8; }
+body.dark-mode .toggle-auth a { color: #818cf8; }
+body.dark-mode .forgot-link  { color: #818cf8; }
 
-body.dark-mode .login-box h2 {
-    color: white;
-}
-
-body.dark-mode .login-box p {
-    color: #cbd5e1;
-}
-
-body.dark-mode .login-box input {
+body.dark-mode .field-group input {
     background: #334155;
     color: white;
-    border: 1px solid #475569;
+    border-color: #475569;
+}
+body.dark-mode .field-group input::placeholder { color: #94a3b8; }
+body.dark-mode .field-group input:focus { border-color: #818cf8; }
+
+body.dark-mode .field-group input.is-error   { background: rgba(239,68,68,0.12); border-color: #ef4444; }
+body.dark-mode .field-group input.is-success { background: rgba(34,197,94,0.08); border-color: #22c55e; }
+
+body.dark-mode .strength-bar  { background: #475569; }
+body.dark-mode .pwd-toggle    { color: #64748b; }
+body.dark-mode .pwd-toggle:hover { color: #818cf8; }
+
+body.dark-mode .auth-error {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.4);
+    color: #fca5a5;
 }
 
-body.dark-mode .login-box input::placeholder {
-    color: #94a3b8;
-}
-
-body.dark-mode .forgot-link {
-    color: #818cf8;
-}
-
-body.dark-mode .toggle-auth {
-    color: white;
-}
-
-body.dark-mode .toggle-auth a {
-    color: #818cf8;
-}
-
-/* SUCCESS BOX — ForgotPassword confirmation */
+/* SUCCESS BOX */
 
 .success-box {
     text-align: center;
     padding: 20px 0;
     animation: fadeIn 0.3s ease;
 }
-
-.success-icon {
-    font-size: 52px;
-    margin-bottom: 14px;
-    display: block;
-}
-
-.success-box h3 {
-    font-size: 22px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 10px;
-}
-
-.success-box p {
-    color: #6b7280;
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 24px;
-}
+.success-icon       { font-size: 52px; margin-bottom: 14px; display: block; }
+.success-box h3     { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 10px; }
+.success-box p      { color: #6b7280; font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 
 .back-to-login-btn {
     display: inline-block;
@@ -240,16 +273,19 @@ body.dark-mode .toggle-auth a {
     font-size: 15px;
     transition: 0.3s;
 }
-
-.back-to-login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
-}
+.back-to-login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
 
 body.dark-mode .success-box h3 { color: white; }
 body.dark-mode .success-box p  { color: #94a3b8; }
 
+/* ── ANIMATIONS ─────────────────────────────────── */
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
-}
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

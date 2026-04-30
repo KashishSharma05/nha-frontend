@@ -1,6 +1,6 @@
-// Central API Client - Base URL: http://web-production-02d3d.up.railway.app
+// Central API Client - Base URL: https://nha-backend.onrender.com
 
-const BASE_URL = "http://web-production-02d3d.up.railway.app";
+const BASE_URL = "https://nha-backend.onrender.com";
 
 export function getToken() {
   return localStorage.getItem("access_token");
@@ -89,12 +89,27 @@ async function request(endpoint, options = {}, auth = true, retry = true) {
       throw err;
     }
 
-    // Surface a meaningful error message from the backend when available
-    const message =
+    // Surface a meaningful error message from the backend when available.
+    // Django REST Framework returns validation errors as { field: ["msg", ...] }
+    // so we flatten those into a single readable string.
+    let message =
       data?.detail ||
       data?.message ||
-      data?.error ||
-      `HTTP ${response.status}: ${response.statusText}`;
+      data?.error;
+
+    if (!message && data && typeof data === "object" && !Array.isArray(data)) {
+      const fieldErrors = Object.entries(data)
+        .map(([field, errs]) => {
+          const msgs = Array.isArray(errs) ? errs.join(" ") : String(errs);
+          // capitalise field name for readability
+          const label = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
+          return `${label}: ${msgs}`;
+        })
+        .join("  •  ");
+      message = fieldErrors || null;
+    }
+
+    message = message || `HTTP ${response.status}: ${response.statusText}`;
     const err = new Error(message);
     err.status = response.status;
     err.data = data;

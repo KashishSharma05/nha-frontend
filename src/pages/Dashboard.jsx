@@ -36,11 +36,19 @@ function Dashboard() {
                 if (analyticsData.status === "fulfilled" && analyticsData.value) {
                     const d = analyticsData.value;
                     setAnalytics(d);
+
+                    // Backend returns: { total_claims, verified_claims, pending_claims, rejected_claims }
+                    // OR summary endpoint: { total, pending, verified, rejected }
+                    const total    = d.total_claims   ?? d.total        ?? d.totalClaims   ?? 0;
+                    const pending  = d.pending_claims  ?? d.pending      ?? d.pendingClaims  ?? 0;
+                    const verified = d.verified_claims ?? d.verified     ?? d.approvedClaims ?? 0;
+                    const rejected = d.rejected_claims ?? d.rejected     ?? d.rejectedClaims ?? 0;
+
                     setStats([
-                        { title: "Total Claims",   value: d.total_claims   ?? d.totalClaims   ?? "0", sub: "+today" },
-                        { title: "Pending Review", value: d.pending_claims  ?? d.pendingClaims  ?? "0", sub: "Needs action" },
-                        { title: "Risk Alerts",    value: d.risk_alerts     ?? d.riskAlerts     ?? "0", sub: "High priority" },
-                        { title: "Approved",       value: d.approved_claims ?? d.approvedClaims ?? "0", sub: "Completed" },
+                        { title: "Total Claims",   value: total,    sub: "+today" },
+                        { title: "Pending Review", value: pending,  sub: "Needs action" },
+                        { title: "Risk Alerts",    value: rejected, sub: "High priority" },
+                        { title: "Approved",       value: verified, sub: "Completed" },
                     ]);
                     setRiskAlerts(d.risk_alert_list ?? d.riskAlertList ?? []);
                 }
@@ -65,9 +73,14 @@ function Dashboard() {
     }, []);
 
     // Derived analytics percentages (use API values if available, else defaults)
-    const approvedPct = analytics?.approved_pct  ?? analytics?.approvedPct  ?? 76;
-    const rejectedPct = analytics?.rejected_pct  ?? analytics?.rejectedPct  ?? 14;
-    const pendingPct  = analytics?.pending_pct   ?? analytics?.pendingPct   ?? 10;
+    // Derive percentages from raw counts
+    const total = analytics?.total_claims ?? analytics?.total ?? 1; // avoid /0
+    const verifiedN = analytics?.verified_claims ?? analytics?.verified ?? 0;
+    const rejectedN = analytics?.rejected_claims ?? analytics?.rejected ?? 0;
+    const pendingN  = analytics?.pending_claims  ?? analytics?.pending  ?? 0;
+    const approvedPct = total > 0 ? Math.round((verifiedN / total) * 100) : 0;
+    const rejectedPct = total > 0 ? Math.round((rejectedN / total) * 100) : 0;
+    const pendingPct  = total > 0 ? Math.round((pendingN  / total) * 100) : 0;
 
     return (
         <Layout>
@@ -113,7 +126,7 @@ function Dashboard() {
                             {approvedPct}%
                         </div>
                         <h3>Approved Claims</h3>
-                        <p>{analytics?.approved_count ?? analytics?.approvedCount ?? "—"} approved this month</p>
+                        <p>{verifiedN} approved this month</p>
                     </div>
 
                     <div className="analytics-card rejected-card">
@@ -121,7 +134,7 @@ function Dashboard() {
                             {rejectedPct}%
                         </div>
                         <h3>Rejected Claims</h3>
-                        <p>{analytics?.rejected_count ?? analytics?.rejectedCount ?? "—"} rejected this month</p>
+                        <p>{rejectedN} rejected this month</p>
                     </div>
 
                     <div className="analytics-card pending-card">
@@ -129,7 +142,7 @@ function Dashboard() {
                             {pendingPct}%
                         </div>
                         <h3>Pending Claims</h3>
-                        <p>{analytics?.pending_count ?? analytics?.pendingCount ?? "—"} under review</p>
+                        <p>{pendingN} under review</p>
                     </div>
 
                 </div>
@@ -151,9 +164,9 @@ function Dashboard() {
                                     style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/claim-details?id=${claim.id}`)}
                                 >
-                                    <span>{claim.patient_name ?? claim.patientName ?? claim.name ?? "—"}</span>
-                                    <span>{claim.amount ?? claim.total_amount ?? "—"}</span>
+                                    <span>{claim.title ?? claim.patient_name ?? claim.patientName ?? claim.name ?? "Untitled Claim"}</span>
                                     <span>{claim.status ?? "—"}</span>
+                                    <span>{claim.created_at ? new Date(claim.created_at).toLocaleDateString() : "—"}</span>
                                 </div>
                             ))
                         ) : (

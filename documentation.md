@@ -79,6 +79,22 @@ NHA-Hackathon/
 
 ## 4. SaaS Architecture & Data Flow
 
+```mermaid
+flowchart TD
+    A["main.jsx\n(AuthProvider)"] --> B["App.jsx\n(Routes)"]
+    B --> C["PublicRoute\n(Login / Register)"]
+    B --> D["ProtectedRoute"]
+    D --> E["Layout.jsx\n(Sidebar + Topbar)"]
+    E --> F["Dashboard"]
+    E --> G["Upload"]
+    E --> H["ClaimDetails"]
+    E --> I["Timeline"]
+    E --> J["Compliance"]
+    E --> K["Decision"]
+    E --> L["Reports"]
+    E --> M["Profile"]
+```
+
 ### Global State Management
 The application relies on `AuthContext` to manage the session globally:
 - **Initialization:** On boot, the app checks `localStorage` for an `access_token` and queries `/api/auth/profile/` to hydrate the user state.

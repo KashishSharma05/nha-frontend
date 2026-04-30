@@ -27,15 +27,16 @@ function ClaimDetails() {
             .finally(() => setLoading(false));
     }, [claimId]);
 
-    // Normalise fields — backend may use snake_case or camelCase
+    // Normalise fields — backend returns: { id, title, description, status, document, source, created_at }
+    // Rich fields (patient_name, diagnosis, etc.) don't exist yet in the backend model
     const patientData = claim
         ? {
-              Name:       claim.patient_name   ?? claim.patientName   ?? "—",
-              Age:        claim.patient_age     ?? claim.age           ?? "—",
-              Gender:     claim.gender                                 ?? "—",
-              "Patient ID": claim.patient_id   ?? claim.patientId     ?? "—",
-              Hospital:   claim.hospital_name  ?? claim.hospital      ?? "—",
-              Admission:  claim.admission_date ?? claim.admission      ?? "—",
+              "Claim Title":  claim.title        ?? claim.patient_name   ?? "—",
+              "Description":  claim.description   ?? "—",
+              Status:         claim.status                                ?? "—",
+              "Claim ID":     claim.id            ?? claim.patient_id     ?? "—",
+              "Created":      claim.created_at ? new Date(claim.created_at).toLocaleString() : "—",
+              "Document":     claim.document      ?? "No document",
           }
         : {};
 

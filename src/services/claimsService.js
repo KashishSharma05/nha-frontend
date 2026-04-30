@@ -45,5 +45,6 @@ export function uploadClaimDocument(claimId, file) {
 }
 
 export function bulkCreateClaims(claimsArray) {
-  return api.post("/api/claims/bulk-create/", claimsArray);
+  // Backend expects: { "claims": [...] }
+  return api.post("/api/claims/bulk-create/", { claims: claimsArray });
 }

@@ -16,12 +16,14 @@ export async function forgotPassword(payload) {
 }
 
 export async function login(payload) {
+  // Backend expects: { username, password }
   const data = await api.post("/api/auth/login/", payload, false);
   if (data?.access) {
     setTokens(data.access, data.refresh);
   }
   return data;
 }
+
 
 export async function getProfile() {
   return api.get("/api/auth/profile/");

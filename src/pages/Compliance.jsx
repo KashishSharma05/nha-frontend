@@ -27,11 +27,21 @@ function Compliance() {
             .finally(() => setLoading(false));
     }, [claimId]);
 
+    // Backend returns: { claim_id, compliance_status: "compliant"/"non-compliant" }
+    // Map to rich fields for the UI
+    const complianceStatus = report?.compliance_status ?? report?.complianceStatus;
+    const isCompliant = complianceStatus === "compliant";
+
     const matchedRules = report?.matched_rules ?? report?.matchedRules ?? [];
     const failedRules  = report?.failed_rules  ?? report?.failedRules  ?? [];
-    const score        = report?.compliance_score ?? report?.complianceScore ?? report?.score ?? "—";
-    const riskLabel    = report?.risk_level ?? report?.riskLevel ?? report?.risk ?? "—";
-    const recommendation = report?.recommendation ?? report?.ai_recommendation ?? "Waiting for analysis...";
+    const score        = report?.compliance_score ?? report?.complianceScore
+                         ?? (complianceStatus ? (isCompliant ? 100 : 0) : "—");
+    const riskLabel    = report?.risk_level ?? report?.riskLevel
+                         ?? (complianceStatus ? (isCompliant ? "Low Risk" : "High Risk") : "—");
+    const recommendation = report?.recommendation ?? report?.ai_recommendation
+                           ?? (complianceStatus
+                               ? (isCompliant ? "Claim follows treatment guidelines. Approved for processing." : "Claim has compliance issues. Manual review recommended.")
+                               : "Waiting for analysis...");
 
     const nextPath = claimId ? `/decision?id=${claimId}` : "/decision";
 

@@ -27,9 +27,12 @@ function Decision() {
             .finally(() => setLoading(false));
     }, [claimId]);
 
-    const verdict        = report?.verdict        ?? report?.decision       ?? "CONDITIONAL";
-    const summary        = report?.summary        ?? report?.decision_summary ?? "Claim Requires Manual Review";
-    const description    = report?.description    ?? report?.detail         ?? "Claim passed core validation but has minor anomalies";
+    // Backend returns: { claim_id, title, description, status, document }
+    // Map status → verdict for the UI
+    const statusToVerdict = { verified: "APPROVED", rejected: "REJECTED", pending: "CONDITIONAL", processing: "CONDITIONAL" };
+    const verdict        = report?.verdict        ?? report?.decision       ?? statusToVerdict[report?.status] ?? "CONDITIONAL";
+    const summary        = report?.summary        ?? report?.decision_summary ?? report?.title ?? "Claim Requires Review";
+    const description    = report?.description    ?? report?.detail         ?? "";
     const evidences      = report?.evidences      ?? report?.evidence_list  ?? report?.evidence ?? [];
     const reasons        = report?.reasons        ?? report?.reason_list    ?? report?.reason   ?? [];
     const payableAmount  = report?.payable_amount ?? report?.payableAmount  ?? "—";

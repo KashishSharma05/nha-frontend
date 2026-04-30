@@ -42,7 +42,7 @@ function Reports() {
         fetchData();
     }, [claimId]);
 
-    // Normalize report fields
+    // Normalize report fields — backend returns: { claim_id, title, description, status, document }
     const claimIdDisplay    = report?.claim_id      ?? report?.claimId      ?? claimId ?? "—";
     const payableAmount     = report?.payable_amount ?? report?.payableAmount ?? "—";
     const complianceScore   = report?.compliance_score ?? report?.complianceScore ?? "—";
