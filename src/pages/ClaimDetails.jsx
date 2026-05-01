@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../styles/claimDetails.css";
-import { getClaimById, deleteClaim } from "../services/claimsService";
+import { getClaimById, deleteClaim, generatePS1Output, getPS1Output } from "../services/claimsService";
 
 const STG_NAMES = {
     "SG039A": "Cholecystectomy — Open (No CBD)",
@@ -47,6 +47,10 @@ function ClaimDetails() {
     const [claim,   setClaim]   = useState(null);
     const [loading, setLoading] = useState(true);
     const [error,   setError]   = useState("");
+    
+    const [ps1Data, setPs1Data] = useState(null);
+    const [ps1Loading, setPs1Loading] = useState(false);
+    const [ps1Error, setPs1Error] = useState("");
 
     useEffect(() => {
         if (!claimId) {
@@ -56,10 +60,35 @@ function ClaimDetails() {
             return () => clearTimeout(t);
         }
         getClaimById(claimId)
-            .then(setClaim)
-            .catch(err => setError(err.message || "Failed to load claim."))
+            .then(res => {
+                // Axios response wraps data in `res.data` if using standard Axios,
+                // but if claimsService unwraps it, we handle accordingly.
+                setClaim(res.data || res);
+                return getPS1Output(claimId);
+            })
+            .then(res => {
+                setPs1Data(res.data || res);
+            })
+            .catch(err => {
+                if (!claim) {
+                    setError(err.message || "Failed to load claim.");
+                }
+            })
             .finally(() => setLoading(false));
     }, [claimId]);
+
+    const handleGeneratePS1 = async () => {
+        setPs1Loading(true);
+        setPs1Error("");
+        try {
+            const res = await generatePS1Output(claimId);
+            setPs1Data(res.data || res);
+        } catch (err) {
+            setPs1Error(err.response?.data?.error || err.message || "Failed to generate PS-1 output.");
+        } finally {
+            setPs1Loading(false);
+        }
+    };
 
     const handleDelete = async () => {
         if (!window.confirm("Are you sure you want to permanently delete this claim?")) return;
@@ -188,6 +217,45 @@ function ClaimDetails() {
                     </div>
                 )}
 
+                {/* PS-1 Output Section */}
+                {!loading && claim?.document && (
+                    <div className="claim-card" style={{ marginTop: "20px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                            <h2>PS-1 Compliance Output</h2>
+                            <button 
+                                onClick={handleGeneratePS1} 
+                                disabled={ps1Loading}
+                                style={{
+                                    padding: "8px 16px",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    background: "#6366f1",
+                                    color: "white",
+                                    fontWeight: "600",
+                                    cursor: ps1Loading ? "not-allowed" : "pointer",
+                                    opacity: ps1Loading ? 0.7 : 1
+                                }}
+                            >
+                                {ps1Loading ? "Generating..." : "Generate PS-1 Data"}
+                            </button>
+                        </div>
+                        
+                        {ps1Error && <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{ps1Error}</p>}
+                        
+                        {ps1Data ? (
+                            <div style={{ background: "#1e293b", padding: "15px", borderRadius: "8px", overflowX: "auto" }}>
+                                <pre style={{ color: "#e2e8f0", fontSize: "13px", margin: 0 }}>
+                                    {JSON.stringify(ps1Data.ps1_output, null, 2)}
+                                </pre>
+                            </div>
+                        ) : (
+                            <p style={{ color: "#94a3b8" }}>
+                                {ps1Loading ? "Analyzing document pages with Gemini..." : "PS-1 per-page output has not been generated for this claim yet."}
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <div style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
                     <button className="next-btn" onClick={() => navigate(nextPath)}>
                         Continue to Timeline →
@@ -212,6 +280,7 @@ function ClaimDetails() {
                 </div>
             </div>
         </Layout>
+
     );
 }
 

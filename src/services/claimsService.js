@@ -54,3 +54,13 @@ export function bulkCreateClaims(claimsArray) {
   // Backend expects: { "claims": [...] }
   return api.post("/api/claims/bulk-create/", { claims: claimsArray });
 }
+
+export function generatePS1Output(claimId, options = {}) {
+  // options could be { case_id: "...", s3_link: "..." }
+  return api.post(`/api/claims/ps1/generate/${claimId}/`, options);
+}
+
+export function getPS1Output(claimId) {
+  return api.get(`/api/claims/ps1/result/${claimId}/`);
+}
+
